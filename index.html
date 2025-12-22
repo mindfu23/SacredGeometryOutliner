@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sacred Geometry Outliner</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>✦ Sacred Geometry Outliner ✦</h1>
+      <p class="subtitle">Transform images into sacred geometric line art</p>
+    </header>
+
+    <main>
+      <!-- Upload Section -->
+      <section class="upload-section">
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="imageInput" accept="image/*" hidden>
+          <div class="upload-content">
+            <span class="upload-icon">◇</span>
+            <p>Drop image here or click to upload</p>
+            <p class="upload-hint">Supports JPG, PNG, WebP</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Preview Section -->
+      <section class="preview-section" id="previewSection" style="display: none;">
+        <div class="canvas-container">
+          <div class="canvas-wrapper">
+            <h3>Original</h3>
+            <canvas id="originalCanvas"></canvas>
+          </div>
+          <div class="canvas-wrapper">
+            <h3>Sacred Geometry</h3>
+            <canvas id="outputCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Hidden canvases for processing -->
+        <canvas id="processingCanvas" style="display: none;"></canvas>
+        <canvas id="edgeCanvas" style="display: none;"></canvas>
+      </section>
+
+      <!-- Controls Section -->
+      <section class="controls-section" id="controlsSection" style="display: none;">
+        <div class="control-group">
+          <h3>◈ Style Controls</h3>
+          
+          <div class="slider-control">
+            <label>
+              <span>Angular</span>
+              <span class="slider-label">Style</span>
+              <span>Flowing</span>
+            </label>
+            <input type="range" id="styleSlider" min="0" max="100" value="50">
+            <div class="slider-value" id="styleValue">50</div>
+          </div>
+
+          <div class="slider-control">
+            <label>
+              <span>Minimal</span>
+              <span class="slider-label">Detail Level</span>
+              <span>Complex</span>
+            </label>
+            <input type="range" id="detailSlider" min="1" max="100" value="50">
+            <div class="slider-value" id="detailValue">Medium</div>
+          </div>
+
+          <div class="slider-control">
+            <label>
+              <span>Abstract</span>
+              <span class="slider-label">Recognizability</span>
+              <span>Realistic</span>
+            </label>
+            <input type="range" id="recognizabilitySlider" min="0" max="100" value="70">
+            <div class="slider-value" id="recognizabilityValue">70</div>
+          </div>
+
+          <div class="slider-control">
+            <label>
+              <span>Raw</span>
+              <span class="slider-label">Line Smoothing</span>
+              <span>Smooth</span>
+            </label>
+            <input type="range" id="smoothingSlider" min="0" max="100" value="50">
+            <div class="slider-value" id="smoothingValue">50</div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>◈ Geometry Settings</h3>
+          
+          <div class="slider-control">
+            <label>
+              <span>Thin</span>
+              <span class="slider-label">Line Weight</span>
+              <span>Thick</span>
+            </label>
+            <input type="range" id="lineWeightSlider" min="1" max="10" value="2">
+            <div class="slider-value" id="lineWeightValue">2px</div>
+          </div>
+
+          <div class="checkbox-control">
+            <label>
+              <input type="checkbox" id="goldenRatioCheck" checked>
+              Apply Golden Ratio Proportions (φ)
+            </label>
+          </div>
+
+          <div class="checkbox-control">
+            <label>
+              <input type="checkbox" id="sacredAnglesCheck" checked>
+              Snap to Sacred Angles (36°, 60°, 72°, 108°)
+            </label>
+          </div>
+
+          <div class="checkbox-control">
+            <label>
+              <input type="checkbox" id="circularConnectionsCheck" checked>
+              Connect with Circular Arcs
+            </label>
+          </div>
+
+          <div class="checkbox-control">
+            <label>
+              <input type="checkbox" id="geometricShapesOnlyCheck">
+              Geometric Shapes Only (circles, triangles, hexagons)
+            </label>
+          </div>
+
+          <div class="checkbox-control">
+            <label>
+              <input type="checkbox" id="isolateSubjectCheck" checked>
+              Isolate Detected Subject
+            </label>
+          </div>
+
+          <div class="slider-control">
+            <label>
+              <span>Tight</span>
+              <span class="slider-label">Subject Padding</span>
+              <span>Loose</span>
+            </label>
+            <input type="range" id="subjectPaddingSlider" min="0" max="100" value="20">
+            <div class="slider-value" id="subjectPaddingValue">20px</div>
+          </div>
+
+          <div class="slider-control">
+            <label>
+              <span>Short</span>
+              <span class="slider-label">Connection Distance</span>
+              <span>Long</span>
+            </label>
+            <input type="range" id="connectionDistanceSlider" min="10" max="200" value="80">
+            <div class="slider-value" id="connectionDistanceValue">80px</div>
+          </div>
+
+          <div class="checkbox-control">
+            <label>
+              <input type="checkbox" id="showSubjectLabel" checked>
+              Show Detected Subject
+            </label>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>◈ Color</h3>
+          <div class="color-controls">
+            <label>
+              Line Color:
+              <input type="color" id="lineColor" value="#ffffff">
+            </label>
+            <label>
+              Background:
+              <input type="color" id="bgColor" value="#0a0a0f">
+            </label>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>◈ Export</h3>
+          <div class="export-buttons">
+            <button id="exportSvg" class="export-btn">
+              <span>◇</span> Export SVG
+            </button>
+            <button id="exportPng" class="export-btn">
+              <span>◇</span> Export PNG
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status Section -->
+      <section class="status-section" id="statusSection">
+        <div class="status-message" id="statusMessage"></div>
+        <div class="detected-subject" id="detectedSubject"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Built with sacred proportions • φ = 1.618033988749...</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
